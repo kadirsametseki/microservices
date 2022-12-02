@@ -28,9 +28,13 @@ public class Car {
 	private int modelYear;
 	
 	@Column(name="plate")
+	private String plate;
+	
+	@Column(name="state")
 	private int state;
 	
+	
 	@ManyToOne()
-	@JoinColumn(name = "model_id")
+	@JoinColumn(name = "modelId")
 	private Model model;
 }

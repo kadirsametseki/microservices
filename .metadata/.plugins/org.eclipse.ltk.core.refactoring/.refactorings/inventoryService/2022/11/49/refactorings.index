@@ -4,3 +4,10 @@
 1669718942543	Move compilation unit
 1669718944081	Move compilation unit
 1669718946269	Move compilation unit
+1669725582604	Delete element
+1669727098139	Rename type 'CarBrandResponse'
+1669730006397	Delete element
+1669734734611	Delete element
+1669746538564	Rename package 'com.kodlamaio.inventoryService.business.responses.get'
+1669746572011	Rename package 'com.kodlamaio.inventoryService.business.responses.getall'
+1669788080089	Rename type 'GetModelManager'

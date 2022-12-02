@@ -1,4 +1,4 @@
-package com.kodlamaio.inventoryService.business.responses.get;
+package com.kodlamaio.inventoryService.business.responses.getAll;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,6 +12,7 @@ public class GetAllCarsResponse {
 	private double dailyPrice;
 	private int modelYear;
 	private String plate;
+	private int state;
 	private String brandName;
-	private String colorName;
+	private String modelName;
 }
