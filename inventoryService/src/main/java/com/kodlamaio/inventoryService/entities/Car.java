@@ -31,7 +31,7 @@ public class Car {
 	private String plate;
 	
 	@Column(name="state")
-	private int state;
+	private int state;  //1-Available, 2- Under Maintanence, 3- Rented
 	
 	
 	@ManyToOne()

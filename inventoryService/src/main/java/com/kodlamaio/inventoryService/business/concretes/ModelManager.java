@@ -6,8 +6,10 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.kodlamaio.common.events.brand.ModelUpdatedEvent;
 import com.kodlamaio.common.utilities.exceptions.BusinessException;
 import com.kodlamaio.common.utilities.mapping.ModelMapperService;
+import com.kodlamaio.inventoryService.business.abstracts.BrandService;
 import com.kodlamaio.inventoryService.business.abstracts.ModelService;
 import com.kodlamaio.inventoryService.business.requests.create.CreateModelRequest;
 import com.kodlamaio.inventoryService.business.requests.update.UpdateModelRequest;
@@ -17,6 +19,7 @@ import com.kodlamaio.inventoryService.business.responses.getById.GetModelRespons
 import com.kodlamaio.inventoryService.business.responses.update.UpdateModelResponse;
 import com.kodlamaio.inventoryService.dataAccess.ModelRepository;
 import com.kodlamaio.inventoryService.entities.Model;
+import com.kodlamaio.inventoryService.kafka.InventoryProducer;
 
 import lombok.AllArgsConstructor;
 
@@ -25,6 +28,8 @@ import lombok.AllArgsConstructor;
 public class ModelManager implements ModelService {
 	private ModelMapperService modelMapperService;
 	private ModelRepository modelRepository;
+	private BrandService brandService;
+	private InventoryProducer inventoryProducer;
 
 	@Override
 	public List<GetAllModelsResponse> getAll() {
@@ -41,8 +46,9 @@ public class ModelManager implements ModelService {
 		checkIfModelExistsByName(createModelRequest.getName());
 		Model model = this.modelMapperService.forRequest().map(createModelRequest, Model.class);
 		model.setId(UUID.randomUUID().toString());
-		this.modelRepository.save(model);
-
+		
+		Model createdModel = this.modelRepository.save(model);
+		
 		CreateModelResponse createModelResponse = this.modelMapperService.forResponse().map(model,
 				CreateModelResponse.class);
 		return createModelResponse;
@@ -53,7 +59,16 @@ public class ModelManager implements ModelService {
 		checkIfModelExistsById(updateModelRequest.getId());
 		checkIfModelExistsByName(updateModelRequest.getName());
 		Model model = this.modelMapperService.forRequest().map(updateModelRequest, Model.class);
-		this.modelRepository.save(model);
+		
+		Model updatedModel = this.modelRepository.save(model);
+		ModelUpdatedEvent modelUpdatedEvent = new ModelUpdatedEvent();
+		modelUpdatedEvent.setBrandId(updatedModel.getBrand().getId());
+		modelUpdatedEvent.setBrandName(updatedModel.getBrand().getName());
+		modelUpdatedEvent.setModelId(updatedModel.getId());
+		modelUpdatedEvent.setModelName(updatedModel.getName());
+		modelUpdatedEvent.setMessage("Model Updated");
+		
+		this.inventoryProducer.sendMessage(modelUpdatedEvent);
 		
 		UpdateModelResponse updateModelResponse = this.modelMapperService.forResponse().map(model, UpdateModelResponse.class);
 		return updateModelResponse;

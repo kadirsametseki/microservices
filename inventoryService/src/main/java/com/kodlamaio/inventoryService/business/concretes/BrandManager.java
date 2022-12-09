@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.kodlamaio.common.events.brand.BrandUpdatedEvent;
 import com.kodlamaio.common.utilities.exceptions.BusinessException;
 import com.kodlamaio.common.utilities.mapping.ModelMapperService;
 import com.kodlamaio.inventoryService.business.abstracts.BrandService;
@@ -17,6 +18,7 @@ import com.kodlamaio.inventoryService.business.responses.getById.GetBrandRespons
 import com.kodlamaio.inventoryService.business.responses.update.UpdateBrandResponse;
 import com.kodlamaio.inventoryService.dataAccess.BrandRepository;
 import com.kodlamaio.inventoryService.entities.Brand;
+import com.kodlamaio.inventoryService.kafka.InventoryProducer;
 
 import lombok.AllArgsConstructor;
 
@@ -25,6 +27,7 @@ import lombok.AllArgsConstructor;
 public class BrandManager implements BrandService {
 	private BrandRepository brandRepository;
 	private ModelMapperService modelMapperService;
+	private InventoryProducer inventoryProducer;
 
 	@Override
 	public List<GetAllBrandsResponse> getAll() {
@@ -53,7 +56,14 @@ public class BrandManager implements BrandService {
 	public UpdateBrandResponse update(UpdateBrandRequest updateBrandRequest) {
 		checkIfBrandExistsById(updateBrandRequest.getId());
 		Brand brand = this.modelMapperService.forRequest().map(updateBrandRequest, Brand.class);
-		this.brandRepository.save(brand);
+		
+		Brand updatedBrand = this.brandRepository.save(brand);
+		BrandUpdatedEvent brandUpdatedEvent = new BrandUpdatedEvent();
+		brandUpdatedEvent.setBrandId(updatedBrand.getId());
+		brandUpdatedEvent.setBrandName(updatedBrand.getName());
+		brandUpdatedEvent.setMessage("Brand Updated");
+		
+		this.inventoryProducer.sendMessage(brandUpdatedEvent);
 		
 		UpdateBrandResponse updateBrandResponse = this.modelMapperService.forResponse().map(brand, UpdateBrandResponse.class);
 		return updateBrandResponse;
@@ -73,6 +83,7 @@ public class BrandManager implements BrandService {
 		this.brandRepository.deleteById(id);
 		
 	}
+	
 	
 	
 	private void checkIfBrandExistsById(String id) {

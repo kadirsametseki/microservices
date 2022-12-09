@@ -2,7 +2,7 @@
 <section name="Workbench">
 	<section name="RefactoringWizard.preview">
 		<item key="width" value="630"/>
-		<item key="height" value="380"/>
+		<item key="height" value="290"/>
 	</section>
 	<section name="RefactoringStatusDialog">
 		<item key="DIALOG_WIDTH" value="818"/>
